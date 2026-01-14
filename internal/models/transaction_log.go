@@ -19,7 +19,7 @@ type TransactionLog struct {
 	StatusMessage      string    `json:"status_message" bson:"status_message"`
 	UserID             string    `json:"user_id" bson:"user_id"`
 	Role               string    `json:"role" bson:"role"`
-	Createbsony        string    `json:"created_by" bson:"created_by"`
+	CreatedBy          string    `json:"created_by" bson:"created_by"`
 	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
 }
 

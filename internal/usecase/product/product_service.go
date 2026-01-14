@@ -23,7 +23,6 @@ func (s *ProductService) Create(
 	ctx context.Context,
 	req payloadProduct.CreateProductRequest,
 ) error {
-
 	if s.db == nil {
 		return errors.New("database not initialized")
 	}
@@ -74,23 +73,53 @@ func (s *ProductService) Create(
 		return err
 	}
 
+	logProductStock := models.TransactionLog{
+		RequestID:          "",
+		FunctionEndpoint:   "product/create",
+		FunctionMethod:     "POST",
+		FunctionName:       "CreateProduct",
+		FunctionController: "ProductService",
+		Environment:        "local",
+		QueryCollection:    "product_stock",
+		QueryType:          "insert",
+		StartTime:          now,
+		EndTime:            time.Now(),
+		DurationMs:         time.Since(now).Milliseconds(),
+		CountData:          1,
+		StatusCode:         201,
+		StatusMessage:      "created",
+		CreatedBy:          req.CreatedBy,
+		CreatedAt:          time.Now(),
+	}
+
 	if _, err := s.db.
 		Collection(models.Product{}.CollectionName()).
 		InsertOne(ctx, product); err != nil {
 		return err
 	}
 
+	_, _ = s.db.Collection(logProductStock.CollectionName()).InsertOne(ctx, logProductStock)
+
+	logProduct := models.TransactionLog{
+		RequestID:          "",
+		FunctionEndpoint:   "product/create",
+		FunctionMethod:     "POST",
+		FunctionName:       "CreateProduct",
+		FunctionController: "ProductService",
+		Environment:        "local",
+		QueryCollection:    "product",
+		QueryType:          "insert",
+		StartTime:          now,
+		EndTime:            time.Now(),
+		DurationMs:         time.Since(now).Milliseconds(),
+		CountData:          1,
+		StatusCode:         201,
+		StatusMessage:      "created",
+		CreatedBy:          req.CreatedBy,
+		CreatedAt:          time.Now(),
+	}
+
+	_, _ = s.db.Collection(logProduct.CollectionName()).InsertOne(ctx, logProduct)
+
 	return nil
 }
-
-// func (s *ProductService) Create(ctx context.Context, product models.Product) error {
-// 	if product.Barcode == "" {
-// 		return productErr.ErrInvalidProduct
-// 	}
-
-// 	product.Status = "active"
-// 	product.CreatedAt = time.Now()
-// 	product.UpdatedAt = time.Now()
-
-// 	return nil
-// }
