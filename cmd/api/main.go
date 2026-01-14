@@ -37,7 +37,7 @@ func main() {
 	staffsService := staffsUsecase.NewStaffsService()
 
 	// ===== Controller =====
-	productCtrl := productController.NewProductsController(productService)
+	productCtrl := productController.NewProductsController(productService) // ✅ ส่ง db ตรง
 	staffsCtrl := staffsController.NewStaffsController(staffsService)
 
 	// ===== Router =====
