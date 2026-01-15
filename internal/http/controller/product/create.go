@@ -23,9 +23,9 @@ func (c *ProductController) Create(ctx echo.Context) error {
 
 	var req payloadProduct.CreateProductRequest
 	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(http.StatusBadRequest,
-			helper.Error(400, "bad request", "Invalid request body."),
-		)
+		// return ctx.JSON(http.StatusBadRequest,
+		// 	helper.Error(400, "bad request", "Invalid request body."),
+		// )
 	}
 
 	err := c.svc.Create(ctx.Request().Context(), req)
