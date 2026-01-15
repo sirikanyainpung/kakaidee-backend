@@ -32,6 +32,27 @@ func main() {
 
 	db := config.NewMongoConnection(mongoCfg)
 
+	// ===== CORS =====
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{
+			"http://localhost:4200",
+		},
+		AllowMethods: []string{
+			echo.GET,
+			echo.POST,
+			echo.PUT,
+			echo.DELETE,
+			echo.OPTIONS,
+		},
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+		},
+		AllowCredentials: true,
+	}))
+
 	// ===== Usecase =====
 	productService := productUsecase.NewProductService(db)
 	staffsService := staffsUsecase.NewStaffsService()
