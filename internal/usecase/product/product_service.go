@@ -23,12 +23,10 @@ func (s *ProductService) Create(
 	ctx context.Context,
 	req payloadProduct.CreateProductRequest,
 ) error {
+	now := time.Now()
 	if s.db == nil {
 		return errors.New("database not initialized")
 	}
-
-	now := time.Now()
-
 	productStock := models.ProductStock{
 		Barcode:       req.Barcode,
 		SKUCode:       req.SKUCode,
