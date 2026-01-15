@@ -70,35 +70,35 @@ func (s *ProductService) Get(
 		bson.D{{"$unwind", bson.M{"path": "$brand", "preserveNullAndEmptyArrays": true}}},
 	)
 
-	// // ===== 6. project (flat response) =====
-	// pipeline = append(pipeline, bson.D{
-	// 	{"$project", bson.M{
-	// 		"_id": 0, // ⭐ ปิด _id
+	// ===== 6. project (flat response) =====
+	pipeline = append(pipeline, bson.D{
+		{"$project", bson.M{
+			"_id": 0, // ⭐ ปิด _id
 
-	// 		"barcode":             1,
-	// 		"sku_code":            1,
-	// 		"product_name":        1,
-	// 		"product_description": 1,
+			"barcode":             1,
+			"sku_code":            1,
+			"product_name":        1,
+			"product_description": 1,
 
-	// 		"category_code": 1,
-	// 		"category_name": "$category.category_name",
+			"category_code": 1,
+			"category_name": "$category.category_name",
 
-	// 		"supplier_code": 1,
-	// 		"supplier_name": "$supplier.supplier_name",
+			"supplier_code": 1,
+			"supplier_name": "$supplier.supplier_name",
 
-	// 		"brand_code": 1,
-	// 		"brand_name": "$brand.brand_name",
+			"brand_code": 1,
+			"brand_name": "$brand.brand_name",
 
-	// 		"balance_qty": 1,
-	// 		"unit":        1,
-	// 		"cost_price":  1,
-	// 		"status":      1,
-	// 		"created_by":  1,
-	// 		"updated_by":  1,
-	// 		"created_at":  1,
-	// 		"updated_at":  1,
-	// 	}},
-	// })
+			"balance_qty": 1,
+			"unit":        1,
+			"cost_price":  1,
+			"status":      1,
+			"created_by":  1,
+			"updated_by":  1,
+			"created_at":  1,
+			"updated_at":  1,
+		}},
+	})
 
 	cur, err := s.db.
 		Collection(models.Product{}.CollectionName()).
