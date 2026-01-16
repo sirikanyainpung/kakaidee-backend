@@ -20,37 +20,37 @@ func (s *ProductService) Export(
 	pipeline := mongo.Pipeline{}
 
 	// ===== keyword filter =====
-	// if keyword != "" {
-	// 	pipeline = append(pipeline, bson.D{
-	// 		{"$match", bson.M{
-	// 			"$or": []bson.M{
-	// 				{"barcode": bson.M{"$regex": keyword, "$options": "i"}},
-	// 				{"sku_code": bson.M{"$regex": keyword, "$options": "i"}},
-	// 				{"product_name": bson.M{"$regex": keyword, "$options": "i"}},
-	// 			},
-	// 		}},
-	// 	})
-	// }
+	if keyword != "" {
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.M{
+				"$or": []bson.M{
+					{"barcode": bson.M{"$regex": keyword, "$options": "i"}},
+					{"sku_code": bson.M{"$regex": keyword, "$options": "i"}},
+					{"product_name": bson.M{"$regex": keyword, "$options": "i"}},
+				},
+			}},
+		})
+	}
 
 	// ===== date filter =====
-	// if startDate != "" || endDate != "" {
-	// 	dateCond := bson.M{}
+	if startDate != "" || endDate != "" {
+		dateCond := bson.M{}
 
-	// 	if startDate != "" {
-	// 		start, _ := time.Parse("2006-01-02", startDate)
-	// 		dateCond["$gte"] = start
-	// 	}
-	// 	if endDate != "" {
-	// 		end, _ := time.Parse("2006-01-02", endDate)
-	// 		dateCond["$lte"] = end.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
-	// 	}
+		if startDate != "" {
+			start, _ := time.Parse("2006-01-02", startDate)
+			dateCond["$gte"] = start
+		}
+		if endDate != "" {
+			end, _ := time.Parse("2006-01-02", endDate)
+			dateCond["$lte"] = end.Add(23*time.Hour + 59*time.Minute + 59*time.Second)
+		}
 
-	// 	pipeline = append(pipeline, bson.D{
-	// 		{"$match", bson.M{
-	// 			"created_at": dateCond,
-	// 		}},
-	// 	})
-	// }
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.M{
+				"created_at": dateCond,
+			}},
+		})
+	}
 
 	// ===== lookup master =====
 	pipeline = append(pipeline,
