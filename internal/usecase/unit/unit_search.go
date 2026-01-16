@@ -1,4 +1,4 @@
-package brand
+package unit
 
 import (
 	"context"
@@ -10,36 +10,32 @@ import (
 	"kakaidee-backend/internal/models"
 )
 
-type BrandService struct {
+type UnitService struct {
 	db *mongo.Database
 }
 
-func NewBrandService(db *mongo.Database) *BrandService {
-	return &BrandService{db: db}
+func NewUnitService(db *mongo.Database) *UnitService {
+	return &UnitService{db: db}
 }
 
-func (s *BrandService) Get(
+func (s *UnitService) Get(
 	ctx context.Context,
 	keyword string,
 	now time.Time,
 ) ([]bson.M, error) {
-
 	pipeline := mongo.Pipeline{}
-
-	// ===== 1. match (search) =====
 	if keyword != "" {
 		pipeline = append(pipeline, bson.D{
 			{"$match", bson.M{
 				"$or": []bson.M{
-					{"brand_code": bson.M{"$regex": keyword, "$options": "i"}},
-					{"brand_name": bson.M{"$regex": keyword, "$options": "i"}},
+					{"name": bson.M{"$regex": keyword, "$options": "i"}},
 				},
 			}},
 		})
 	}
 
 	cur, err := s.db.
-		Collection(models.Brand{}.CollectionName()).
+		Collection(models.Unit{}.CollectionName()).
 		Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
@@ -52,14 +48,14 @@ func (s *BrandService) Get(
 	}
 
 	end := time.Now()
-	logBrand := models.TransactionLog{
+	logUnit := models.TransactionLog{
 		RequestID:          "",
-		FunctionEndpoint:   "brand?keyword=" + keyword,
+		FunctionEndpoint:   "unit?keyword=" + keyword,
 		FunctionMethod:     "GET",
-		FunctionName:       "SearchBrand",
-		FunctionController: "Brand",
+		FunctionName:       "SearchUnit",
+		FunctionController: "Unit",
 		Environment:        "local",
-		QueryCollection:    "brand_masters",
+		QueryCollection:    "unit",
 		QueryType:          "query",
 		StartTime:          now,
 		EndTime:            end,
@@ -70,7 +66,7 @@ func (s *BrandService) Get(
 		CreatedBy:          "admin",
 		CreatedAt:          now,
 	}
-	_, _ = s.db.Collection(logBrand.CollectionName()).InsertOne(ctx, logBrand)
+	_, _ = s.db.Collection(logUnit.CollectionName()).InsertOne(ctx, logUnit)
 
 	return result, nil
 }

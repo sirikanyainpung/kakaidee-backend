@@ -14,12 +14,16 @@ import (
 	categoryController "kakaidee-backend/internal/http/controller/category"
 	productController "kakaidee-backend/internal/http/controller/product"
 	staffsController "kakaidee-backend/internal/http/controller/staffs"
+	supplierController "kakaidee-backend/internal/http/controller/supplier"
+	unitController "kakaidee-backend/internal/http/controller/unit"
 
 	// usecases
 	brandUsecase "kakaidee-backend/internal/usecase/brand"
 	categoryUsecase "kakaidee-backend/internal/usecase/category"
 	productUsecase "kakaidee-backend/internal/usecase/product"
 	staffsUsecase "kakaidee-backend/internal/usecase/staffs"
+	supplierUsecase "kakaidee-backend/internal/usecase/supplier"
+	unitUsecase "kakaidee-backend/internal/usecase/unit"
 )
 
 func main() {
@@ -62,12 +66,16 @@ func main() {
 	staffsService := staffsUsecase.NewStaffsService()
 	brandService := brandUsecase.NewBrandService(db)
 	categoryService := categoryUsecase.NewCategoryService(db)
+	supplierService := supplierUsecase.NewSupplierService(db)
+	unitService := unitUsecase.NewUnitService(db)
 
 	// ===== Controller =====
 	productCtrl := productController.NewProductsController(productService) // ✅ ส่ง db ตรง
 	staffsCtrl := staffsController.NewStaffsController(staffsService)
 	brandCtrl := brandController.NewBrandController(brandService)
 	categoryCtrl := categoryController.NewCategoryController(categoryService)
+	supplierCtrl := supplierController.NewSupplierController(supplierService)
+	unitCtrl := unitController.NewUnitController(unitService)
 
 	// ===== Router =====
 	router.Register(e, router.Handlers{
@@ -75,6 +83,8 @@ func main() {
 		Staffs:   staffsCtrl,
 		Brand:    brandCtrl,
 		Category: categoryCtrl,
+		Supplier: supplierCtrl,
+		Unit:     unitCtrl,
 	})
 
 	// ===== Start Server =====

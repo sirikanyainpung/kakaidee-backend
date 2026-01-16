@@ -5,6 +5,8 @@ import (
 	CategoryController "kakaidee-backend/internal/http/controller/category"
 	ProductController "kakaidee-backend/internal/http/controller/product"
 	StaffsController "kakaidee-backend/internal/http/controller/staffs"
+	SupplierController "kakaidee-backend/internal/http/controller/supplier"
+	UnitController "kakaidee-backend/internal/http/controller/unit"
 
 	"github.com/labstack/echo/v4"
 )
@@ -14,6 +16,8 @@ type Handlers struct {
 	Product  *ProductController.ProductController
 	Brand    *BrandController.BrandController
 	Category *CategoryController.CategoryController
+	Supplier *SupplierController.SupplierController
+	Unit     *UnitController.UnitController
 }
 
 func Register(e *echo.Echo, h Handlers) {
@@ -34,4 +38,12 @@ func Register(e *echo.Echo, h Handlers) {
 	// ===== Category =====
 	category := e.Group("/category")
 	category.GET("", h.Category.Search)
+
+	// ===== Supplier =====
+	supplier := e.Group("/supplier")
+	supplier.GET("", h.Supplier.Search)
+
+	// ===== Unit =====
+	unit := e.Group("/unit")
+	unit.GET("", h.Unit.Search)
 }

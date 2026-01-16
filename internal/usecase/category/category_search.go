@@ -59,7 +59,7 @@ func (s *CategoryService) Get(
 		FunctionEndpoint:   "category?keyword=" + keyword,
 		FunctionMethod:     "GET",
 		FunctionName:       "SearchCategory",
-		FunctionController: "CategorySearch",
+		FunctionController: "Category",
 		Environment:        "local",
 		QueryCollection:    "category_masters",
 		QueryType:          "query",

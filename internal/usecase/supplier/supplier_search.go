@@ -1,4 +1,4 @@
-package brand
+package supplier
 
 import (
 	"context"
@@ -10,36 +10,34 @@ import (
 	"kakaidee-backend/internal/models"
 )
 
-type BrandService struct {
+type SupplierService struct {
 	db *mongo.Database
 }
 
-func NewBrandService(db *mongo.Database) *BrandService {
-	return &BrandService{db: db}
+func NewSupplierService(db *mongo.Database) *SupplierService {
+	return &SupplierService{db: db}
 }
 
-func (s *BrandService) Get(
+func (s *SupplierService) Get(
 	ctx context.Context,
 	keyword string,
 	now time.Time,
 ) ([]bson.M, error) {
-
 	pipeline := mongo.Pipeline{}
 
-	// ===== 1. match (search) =====
 	if keyword != "" {
 		pipeline = append(pipeline, bson.D{
 			{"$match", bson.M{
 				"$or": []bson.M{
-					{"brand_code": bson.M{"$regex": keyword, "$options": "i"}},
-					{"brand_name": bson.M{"$regex": keyword, "$options": "i"}},
+					{"supplier_code": bson.M{"$regex": keyword, "$options": "i"}},
+					{"supplier_name": bson.M{"$regex": keyword, "$options": "i"}},
 				},
 			}},
 		})
 	}
 
 	cur, err := s.db.
-		Collection(models.Brand{}.CollectionName()).
+		Collection(models.Supplier{}.CollectionName()).
 		Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
@@ -52,14 +50,14 @@ func (s *BrandService) Get(
 	}
 
 	end := time.Now()
-	logBrand := models.TransactionLog{
+	logCategory := models.TransactionLog{
 		RequestID:          "",
-		FunctionEndpoint:   "brand?keyword=" + keyword,
+		FunctionEndpoint:   "category?keyword=" + keyword,
 		FunctionMethod:     "GET",
-		FunctionName:       "SearchBrand",
-		FunctionController: "Brand",
+		FunctionName:       "SearchSupplier",
+		FunctionController: "Supplier",
 		Environment:        "local",
-		QueryCollection:    "brand_masters",
+		QueryCollection:    "supplier_masters",
 		QueryType:          "query",
 		StartTime:          now,
 		EndTime:            end,
@@ -70,7 +68,7 @@ func (s *BrandService) Get(
 		CreatedBy:          "admin",
 		CreatedAt:          now,
 	}
-	_, _ = s.db.Collection(logBrand.CollectionName()).InsertOne(ctx, logBrand)
+	_, _ = s.db.Collection(logCategory.CollectionName()).InsertOne(ctx, logCategory)
 
 	return result, nil
 }
