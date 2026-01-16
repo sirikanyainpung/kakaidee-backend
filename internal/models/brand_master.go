@@ -13,5 +13,5 @@ type Brand struct {
 }
 
 func (Brand) CollectionName() string {
-	return "brand_master"
+	return "brand_masters"
 }

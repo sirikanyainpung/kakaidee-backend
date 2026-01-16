@@ -13,5 +13,5 @@ type Supplier struct {
 }
 
 func (Supplier) CollectionName() string {
-	return "supplier_master"
+	return "supplier_masters"
 }

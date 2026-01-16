@@ -13,5 +13,5 @@ type Category struct {
 }
 
 func (Category) CollectionName() string {
-	return "category_master"
+	return "category_masters"
 }
