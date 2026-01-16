@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Brand struct {
-	BrandCode   string    `json:"brand_code" bson:"brand_code"`
+	BrandCode   int32     `json:"brand_code" bson:"brand_code"`
 	BrandName   string    `json:"brand_name" bson:"brand_name"`
 	Status      string    `json:"status" bson:"status"`
 	Createbsony string    `json:"created_by" bson:"created_by"`

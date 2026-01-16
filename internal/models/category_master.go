@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Category struct {
-	CategoryCode string    `json:"category_code" bson:"category_code"`
+	CategoryCode int32     `json:"category_code" bson:"category_code"`
 	CategoryName string    `json:"category_name" bson:"category_name"`
 	Status       string    `json:"status" bson:"status"`
 	Createbsony  string    `json:"created_by" bson:"created_by"`

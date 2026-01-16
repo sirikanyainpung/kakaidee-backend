@@ -7,9 +7,9 @@ type Product struct {
 	SKUCode            string    `json:"sku_code" bson:"sku_code"`
 	ProductName        string    `json:"product_name" bson:"product_name"`
 	ProductDescription string    `json:"product_description" bson:"product_description"`
-	CategoryCode       string    `json:"category_code" bson:"category_code"`
-	SupplierCode       string    `json:"supplier_code" bson:"supplier_code"`
-	BrandCode          string    `json:"brand_code" bson:"brand_code"`
+	CategoryCode       int32     `json:"category_code" bson:"category_code"`
+	SupplierCode       int32     `json:"supplier_code" bson:"supplier_code"`
+	BrandCode          int32     `json:"brand_code" bson:"brand_code"`
 	BalanceQty         int       `json:"balance_qty" bson:"balance_qty"`
 	Unit               string    `json:"unit" bson:"unit"`
 	CostPrice          float64   `json:"cost_price" bson:"cost_price"`
