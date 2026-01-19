@@ -46,8 +46,10 @@ func (s *ProductService) ImportFromExcel(
 	}
 
 	var (
-		success int
-		failed  []string
+		successStock int
+		failedStock  int
+		success      int
+		failed       []string
 	)
 
 	// ===== parse rows =====
@@ -112,11 +114,19 @@ func (s *ProductService) ImportFromExcel(
 			Collection(models.ProductStock{}.CollectionName()).
 			InsertOne(ctx, productStock); err != nil {
 
+			// failed = append(failed,
+			// 	fmt.Sprintf("row %d: insert product_stock failed", i+1),
+			// )
+
 			failed = append(failed,
-				fmt.Sprintf("row %d: insert product_stock failed", i+1),
+				fmt.Sprintf("row %d: Insert product_stock failed: %v", i+1, err),
 			)
+
+			failedStock++
 			continue
 		}
+
+		successStock++
 
 		// // ===== log product_stock =====
 		// _, _ = s.db.
@@ -138,6 +148,7 @@ func (s *ProductService) ImportFromExcel(
 			CategoryCode:       req.CategoryCode,
 			SupplierCode:       req.SupplierCode,
 			BrandCode:          req.BrandCode,
+			BalanceQty:         req.ReceiveQty,
 			Unit:               req.Unit,
 			CostPrice:          req.CostPrice,
 			Status:             "active",
@@ -155,13 +166,17 @@ func (s *ProductService) ImportFromExcel(
 		if _, err := s.db.
 			Collection(models.Product{}.CollectionName()).
 			UpdateOne(ctx, filter, update, options.Update().SetUpsert(true)); err != nil {
-
+			product.CreatedAt = now
+			product.CreatedBy = createdBy
 			// insert
 			if _, err := s.db.
 				Collection(models.Product{}.CollectionName()).
 				InsertOne(ctx, product); err != nil {
+				// failed = append(failed,
+				// 	fmt.Sprintf("row %d: Insert product failed", i+1),
+				// )
 				failed = append(failed,
-					fmt.Sprintf("row %d: Insert product failed", i+1),
+					fmt.Sprintf("row %d: Insert product failed: %v", i+1, err),
 				)
 				continue
 			}
@@ -174,17 +189,37 @@ func (s *ProductService) ImportFromExcel(
 		success++
 	}
 
-	// ===== log product_master =====
-	_, _ = s.db.
-		Collection(models.TransactionLog{}.CollectionName()).
-		InsertOne(ctx, buildLog(
-			"product/import/excel",
-			"product_master",
-			"upsert",
-			now,
-			createdBy,
-			success*2,
-		))
+	// ===== log product_master success =====
+	if (success + successStock) > 0 {
+		_, _ = s.db.
+			Collection(models.TransactionLog{}.CollectionName()).
+			InsertOne(ctx, buildLog(
+				"product/import/excel",
+				"product_master",
+				"upsert",
+				now,
+				createdBy,
+				success+successStock,
+				201,
+				"created",
+			))
+	}
+
+	// ===== log product_master false =====
+	if (len(failed) + failedStock) > 0 {
+		_, _ = s.db.
+			Collection(models.TransactionLog{}.CollectionName()).
+			InsertOne(ctx, buildLog(
+				"product/import/excel",
+				"product_master",
+				"upsert",
+				now,
+				createdBy,
+				len(failed)+failedStock,
+				400,
+				"fail",
+			))
+	}
 
 	return map[string]interface{}{
 		"imported": success,
@@ -240,7 +275,11 @@ func buildLog(
 	now time.Time,
 	createdBy string,
 	countData int,
+	statusCode int,
+	statusMessage string,
 ) models.TransactionLog {
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
 
 	return models.TransactionLog{
 		FunctionEndpoint:   endpoint,
@@ -251,11 +290,11 @@ func buildLog(
 		QueryCollection:    collection,
 		QueryType:          queryType,
 		StartTime:          now,
-		EndTime:            time.Now(),
+		EndTime:            time.Now().In(loc),
 		DurationMs:         time.Since(now).Milliseconds(),
 		CountData:          countData,
-		StatusCode:         201,
-		StatusMessage:      "created",
+		StatusCode:         statusCode,
+		StatusMessage:      statusMessage,
 		CreatedBy:          createdBy,
 		CreatedAt:          time.Now(),
 	}

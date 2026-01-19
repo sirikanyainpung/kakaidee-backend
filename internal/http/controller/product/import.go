@@ -22,7 +22,9 @@ func (c *ProductController) ImportExcel(ctx echo.Context) error {
 
 	// ===== mock created by (ปรับตาม auth จริงได้) =====
 	createdBy := "admin"
-	now := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	now := time.Now().In(loc)
+	// now := time.Now()
 
 	result, err := c.svc.ImportFromExcel(
 		ctx.Request().Context(),
