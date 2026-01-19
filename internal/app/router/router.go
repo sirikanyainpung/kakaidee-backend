@@ -31,6 +31,7 @@ func Register(e *echo.Echo, h Handlers) {
 	product.GET("", h.Product.Search)
 	product.POST("/create", h.Product.Create)
 	product.GET("/export", h.Product.Export)
+	product.POST("/import/excel", h.Product.ImportExcel)
 
 	// ===== Brand =====
 	brand := e.Group("/brand")

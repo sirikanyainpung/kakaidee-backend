@@ -5,7 +5,7 @@ import "time"
 type ProductStock struct {
 	Barcode       string    `json:"barcode" bson:"barcode"`
 	SKUCode       string    `json:"sku_code" bson:"sku_code"`
-	LotNo         string    `json:"lot_no" bson:"lots_no"`
+	LotNo         string    `json:"lot_no" bson:"lot_no"`
 	WarehouseName string    `json:"warehouse_name" bson:"warehouses_name"`
 	WarehouseZone string    `json:"warehouse_zone" bson:"warehouses_zone"`
 	Bin           string    `json:"bin" bson:"bin"`
