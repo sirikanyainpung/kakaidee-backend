@@ -1,5 +1,11 @@
 package helper
 
+import (
+	"strconv"
+	"strings"
+	"time"
+)
+
 type APIResponse struct {
 	StatusCode    int         `json:"status_code"`
 	StatusMessage string      `json:"status_message"`
@@ -32,4 +38,28 @@ func Error(code int, status, message string) APIResponse {
 		Message:       message,
 		Result:        nil,
 	}
+}
+
+func ToInt32(val string) int32 {
+	i, _ := strconv.Atoi(strings.TrimSpace(val))
+	return int32(i)
+}
+
+func ToInt(val string) int {
+	i, _ := strconv.Atoi(strings.TrimSpace(val))
+	return i
+}
+
+func ToFloat64(val string) float64 {
+	v := strings.ReplaceAll(strings.TrimSpace(val), ",", "")
+	f, _ := strconv.ParseFloat(v, 64)
+	return f
+}
+
+func ToDate(val string) time.Time {
+	if val == "" {
+		return time.Time{}
+	}
+	t, _ := time.Parse("2006-01-02", val)
+	return t
 }

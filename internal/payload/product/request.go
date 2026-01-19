@@ -24,9 +24,7 @@ type CreateProductRequest struct {
 	UpdatedBy          string    `json:"updated_by" bson:"updated_by"`
 }
 
-
-
-type importProductRequest struct {
+type ImportProductRequest struct {
 	Barcode            string    `json:"barcode" bson:"barcode"`
 	SKUCode            string    `json:"sku_code" bson:"sku_code"`
 	ProductName        string    `json:"product_name" bson:"product_name"`

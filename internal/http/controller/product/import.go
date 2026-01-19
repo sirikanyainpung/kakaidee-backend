@@ -2,16 +2,17 @@ package product
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
 	"kakaidee-backend/internal/helper"
-	"kakaidee-backend/internal/usecase/product"
 )
 
 func (c *ProductController) ImportExcel(ctx echo.Context) error {
 	ctx.Logger().Info("👉 Product Import Excel called")
 
+	// ===== get file =====
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest,
@@ -19,9 +20,15 @@ func (c *ProductController) ImportExcel(ctx echo.Context) error {
 		)
 	}
 
+	// ===== mock created by (ปรับตาม auth จริงได้) =====
+	createdBy := "admin"
+	now := time.Now()
+
 	result, err := c.svc.ImportFromExcel(
 		ctx.Request().Context(),
 		fileHeader,
+		createdBy,
+		now,
 	)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError,
