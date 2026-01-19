@@ -4,6 +4,7 @@ import (
 	BrandController "kakaidee-backend/internal/http/controller/brand"
 	CategoryController "kakaidee-backend/internal/http/controller/category"
 	ProductController "kakaidee-backend/internal/http/controller/product"
+	ProductStockController "kakaidee-backend/internal/http/controller/product_stock"
 	StaffsController "kakaidee-backend/internal/http/controller/staffs"
 	SupplierController "kakaidee-backend/internal/http/controller/supplier"
 	UnitController "kakaidee-backend/internal/http/controller/unit"
@@ -12,12 +13,13 @@ import (
 )
 
 type Handlers struct {
-	Staffs   *StaffsController.StaffsController
-	Product  *ProductController.ProductController
-	Brand    *BrandController.BrandController
-	Category *CategoryController.CategoryController
-	Supplier *SupplierController.SupplierController
-	Unit     *UnitController.UnitController
+	Staffs       *StaffsController.StaffsController
+	Product      *ProductController.ProductController
+	ProductStock *ProductStockController.ProductStockController
+	Brand        *BrandController.BrandController
+	Category     *CategoryController.CategoryController
+	Supplier     *SupplierController.SupplierController
+	Unit         *UnitController.UnitController
 }
 
 func Register(e *echo.Echo, h Handlers) {
@@ -32,6 +34,11 @@ func Register(e *echo.Echo, h Handlers) {
 	product.POST("/create", h.Product.Create)
 	product.GET("/export", h.Product.Export)
 	product.POST("/import/excel", h.Product.ImportExcel)
+
+	// ===== Products Stock =====
+	productStock := e.Group("/product-stocks")
+	productStock.GET("/search/lot", h.ProductStock.GetByLotNo)
+	productStock.GET("/search/warehouse", h.ProductStock.GetByWarehouseName)
 
 	// ===== Brand =====
 	brand := e.Group("/brand")
