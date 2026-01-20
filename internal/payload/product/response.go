@@ -6,4 +6,5 @@ type LotsListResponse struct {
 
 type WMSListResponse struct {
 	WmsName string `json:"warehouse_name" bson:"warehouses_name"`
+	WmsZone string `json:"warehouses_zone" bson:"warehouses_zone"`
 }

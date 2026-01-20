@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"kakaidee-backend/internal/helper"
 	"kakaidee-backend/internal/models"
 	payloadProduct "kakaidee-backend/internal/payload/product"
 )
@@ -73,43 +74,65 @@ func (s *ProductStockService) GetByWarehouseName(
 	warehouseName string,
 ) ([]payloadProduct.WMSListResponse, error) {
 
-	col := s.db.Collection(models.ProductStock{}.CollectionName())
-	var wmsList []payloadProduct.WMSListResponse
-
-	// ===== case 1: warehouses_name มีค่า =====
+	pipeline := mongo.Pipeline{}
+	// ===== 1. match (search) =====
 	if warehouseName != "" {
-		filter := bson.M{"warehouses_name": warehouseName}
-
-		result, err := col.Distinct(ctx, "warehouses_name", filter)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, v := range result {
-			if s, ok := v.(string); ok {
-				if s != "" {
-					wmsList = append(wmsList, payloadProduct.WMSListResponse{
-						WmsName: s,
-					})
-				}
-			}
-		}
-
-		return wmsList, nil
+		pipeline = append(pipeline, bson.D{
+			{"$match", bson.M{
+				"$or": []bson.M{
+					{"warehouses_name": bson.M{"$regex": warehouseName, "$options": "i"}},
+				},
+			}},
+		})
 	}
 
-	// ===== case 2: warehouses_name ว่าง → เอาทั้งหมด =====
-	result, err := col.Distinct(ctx, "warehouses_name", bson.M{})
+	// ===== 2. distinct warehouse_name and warehouse_zone =====
+	pipeline = append(pipeline, bson.D{
+		{"$group", bson.M{
+			"_id": bson.M{
+				"warehouses_name": "$warehouses_name", // group by warehouses_name
+				"warehouses_zone": "$warehouses_zone", // group by warehouses_zone
+			},
+		}},
+	})
+
+	// ===== 3. project to return the final fields =====
+	pipeline = append(pipeline, bson.D{
+		{"$project", bson.M{
+			"warehouses_name": "$_id.warehouses_name",
+			"warehouses_zone": "$_id.warehouses_zone",
+			"_id":             0, // remove _id from the result
+		}},
+	})
+
+	// Execute the aggregation
+	cur, err := s.db.Collection(models.ProductStock{}.CollectionName()).Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
+	defer cur.Close(ctx)
 
+	var result []bson.M
+	if err := cur.All(ctx, &result); err != nil {
+		return nil, err
+	}
+
+	// Helper print to debug
+	helper.PrintStructJson(" ----- result all ----- ")
+	helper.PrintStructJson(result)
+
+	var wmsList []payloadProduct.WMSListResponse
+	// Loop through the result and populate wmsList
 	for _, v := range result {
-		if s, ok := v.(string); ok {
-			if s != "" {
-				wmsList = append(wmsList, payloadProduct.WMSListResponse{
-					WmsName: s,
-				})
+		// v["warehouse_name"] and v["warehouse_zone"] should contain the values we grouped by
+		if warehouseName, ok := v["warehouses_name"].(string); ok {
+			if warehouseName != "" {
+				if warehouseZone, ok := v["warehouses_zone"].(string); ok {
+					wmsList = append(wmsList, payloadProduct.WMSListResponse{
+						WmsName: warehouseName,
+						WmsZone: warehouseZone,
+					})
+				}
 			}
 		}
 	}
