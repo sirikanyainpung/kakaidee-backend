@@ -1,10 +1,15 @@
 package product
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"fmt"
 	"kakaidee-backend/internal/models"
+	"strconv"
 	"time"
 
+	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -137,4 +142,94 @@ func (s *ProductService) Export(
 	_, _ = s.db.Collection(logProduct.CollectionName()).InsertOne(ctx, logProduct)
 
 	return result, nil
+}
+
+func (s *ProductService) ExportExcel(
+	ctx context.Context,
+	keyword string,
+	skuCode string,
+	categoryCode string,
+	warehouseName string,
+	lotNo string,
+	status string,
+	now time.Time,
+) (string, string, error) {
+
+	// reuse search pipeline
+	data, err := s.GetV2(
+		ctx,
+		keyword,
+		skuCode,
+		categoryCode,
+		warehouseName,
+		lotNo,
+		status,
+		now,
+	)
+	if err != nil {
+		return "", "", err
+	}
+
+	f := excelize.NewFile()
+	sheet := "Products"
+	f.SetSheetName("Sheet1", sheet)
+
+	// ===== header =====
+	headers := []string{
+		"Barcode", "SKU Code", "Product Name", "Product Description",
+		"Brand Code", "Brand Name", "Category Code", "Category Name TH", "Category Name EN",
+		"Supplier Code", "Supplier Name",
+		"Cost Price", "Balance Qty", "Unit Code", "Unit Name",
+		"Warehouse Name", "Warehouse Zone", "Bin", "Stock Type",
+		"Lot No", "MFG", "EXP", "Status",
+	}
+
+	for i, h := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue(sheet, cell, h)
+	}
+
+	// ===== data =====
+	for r, row := range data {
+		rowNum := r + 2
+
+		f.SetCellValue(sheet, "A"+strconv.Itoa(rowNum), row["barcode"])
+		f.SetCellValue(sheet, "B"+strconv.Itoa(rowNum), row["sku_code"])
+		f.SetCellValue(sheet, "C"+strconv.Itoa(rowNum), row["product_name"])
+		f.SetCellValue(sheet, "D"+strconv.Itoa(rowNum), row["product_description"])
+		f.SetCellValue(sheet, "E"+strconv.Itoa(rowNum), row["brand_code"])
+		f.SetCellValue(sheet, "F"+strconv.Itoa(rowNum), row["brand_name"])
+		f.SetCellValue(sheet, "G"+strconv.Itoa(rowNum), row["category_code"])
+		f.SetCellValue(sheet, "H"+strconv.Itoa(rowNum), row["category_name_th"])
+		f.SetCellValue(sheet, "I"+strconv.Itoa(rowNum), row["category_name_en"])
+		f.SetCellValue(sheet, "J"+strconv.Itoa(rowNum), row["supplier_code"])
+		f.SetCellValue(sheet, "K"+strconv.Itoa(rowNum), row["supplier_name"])
+		f.SetCellValue(sheet, "L"+strconv.Itoa(rowNum), row["cost_price"])
+		f.SetCellValue(sheet, "M"+strconv.Itoa(rowNum), row["balance_qty"])
+		f.SetCellValue(sheet, "N"+strconv.Itoa(rowNum), row["unit_code"])
+		f.SetCellValue(sheet, "O"+strconv.Itoa(rowNum), row["unit_name"])
+		f.SetCellValue(sheet, "P"+strconv.Itoa(rowNum), row["warehouse_name"])
+		f.SetCellValue(sheet, "Q"+strconv.Itoa(rowNum), row["warehouse_zone"])
+		f.SetCellValue(sheet, "R"+strconv.Itoa(rowNum), row["bin"])
+		f.SetCellValue(sheet, "S"+strconv.Itoa(rowNum), row["stock_type"])
+		f.SetCellValue(sheet, "T"+strconv.Itoa(rowNum), row["lot_no"])
+		f.SetCellValue(sheet, "U"+strconv.Itoa(rowNum), row["mfg"])
+		f.SetCellValue(sheet, "V"+strconv.Itoa(rowNum), row["exp"])
+		f.SetCellValue(sheet, "W"+strconv.Itoa(rowNum), row["status"])
+	}
+
+	// ===== encode base64 =====
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		return "", "", err
+	}
+
+	base64File := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	fileName := fmt.Sprintf(
+		"product_export_%s.xlsx",
+		time.Now().Format("20060102_150405"),
+	)
+
+	return fileName, base64File, nil
 }

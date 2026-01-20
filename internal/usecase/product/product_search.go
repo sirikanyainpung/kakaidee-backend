@@ -166,7 +166,7 @@ func (s *ProductService) GetV2(
 	}
 
 	if categoryCode != "" {
-		match["category_code"] = categoryCode
+		match["category_code"] = ToInt32(categoryCode)
 	}
 
 	if status != "" {
@@ -230,14 +230,23 @@ func (s *ProductService) GetV2(
 		"as":           "brand",
 	}}})
 
-	// ===== 8. unwind master =====
+	// ===== 8. lookup unit =====
+	pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
+		"from":         "unit",
+		"localField":   "unit",      // product_master.unit
+		"foreignField": "unit_code", // unit.unit_code
+		"as":           "unit_info",
+	}}})
+
+	// ===== 9. unwind master =====
 	pipeline = append(pipeline,
 		bson.D{{"$unwind", bson.M{"path": "$category", "preserveNullAndEmptyArrays": true}}},
 		bson.D{{"$unwind", bson.M{"path": "$supplier", "preserveNullAndEmptyArrays": true}}},
 		bson.D{{"$unwind", bson.M{"path": "$brand", "preserveNullAndEmptyArrays": true}}},
+		bson.D{{"$unwind", bson.M{"path": "$unit_info", "preserveNullAndEmptyArrays": true}}},
 	)
 
-	// ===== 9. project (RESULT FINAL) =====
+	// ===== 10. project (RESULT FINAL) =====
 	pipeline = append(pipeline, bson.D{
 		{"$project", bson.M{
 			"_id": 0,
@@ -250,15 +259,17 @@ func (s *ProductService) GetV2(
 			"brand_code": 1,
 			"brand_name": "$brand.brand_name",
 
-			"category_code": 1,
-			"category_name": "$category.category_name",
+			"category_code":    1,
+			"category_name_th": "$category.category_name_th",
+			"category_name_en": "$category.category_name_en",
 
 			"supplier_code": 1,
 			"supplier_name": "$supplier.supplier_name",
 
 			"cost_price":  1,
 			"balance_qty": 1,
-			"unit":        1,
+			"unit":        "$unit_info.unit_code",
+			"unit_name":   "$unit_info.name",
 
 			"warehouse_name": "$stock.warehouses_name",
 			"warehouse_zone": "$stock.warehouses_zone",

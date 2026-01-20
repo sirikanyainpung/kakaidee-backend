@@ -97,3 +97,41 @@ func (c *ProductController) Export(ctx echo.Context) error {
 		helper.Success("Export product success.", result),
 	)
 }
+
+func (c *ProductController) ExportV2(ctx echo.Context) error {
+
+	keyword := ctx.QueryParam("keyword")
+	skuCode := ctx.QueryParam("sku_code")
+	categoryCode := ctx.QueryParam("category_code")
+	warehouseName := ctx.QueryParam("warehouse_name")
+	lotNo := ctx.QueryParam("lot_no")
+	status := ctx.QueryParam("status")
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	now := time.Now().In(loc)
+
+	fileName, base64File, err := c.svc.ExportExcel(
+		ctx.Request().Context(),
+		keyword,
+		skuCode,
+		categoryCode,
+		warehouseName,
+		lotNo,
+		status,
+		now,
+	)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			helper.Error(500, "error", err.Error()),
+		)
+	}
+
+	result := map[string]string{
+		"export_name": fileName,
+		"base64_file": base64File,
+	}
+
+	return ctx.JSON(http.StatusOK,
+		helper.Success("Export product success.", result),
+	)
+}
