@@ -27,9 +27,9 @@ func (s *ProductStockService) GetLotNoList(
 
 	// ===== case 1: lot_no มีค่า =====
 	if lotNo != "" {
-		filter := bson.M{"lot_no": lotNo}
+		filter := bson.M{"lots_no": lotNo}
 
-		result, err := col.Distinct(ctx, "lot_no", filter)
+		result, err := col.Distinct(ctx, "lots_no", filter)
 		if err != nil {
 			return nil, err
 		}
@@ -37,7 +37,9 @@ func (s *ProductStockService) GetLotNoList(
 		lotList := make([]string, 0, len(result))
 		for _, v := range result {
 			if s, ok := v.(string); ok {
-				lotList = append(lotList, s)
+				if s != "" {
+					lotList = append(lotList, s)
+				}
 			}
 		}
 
@@ -45,7 +47,7 @@ func (s *ProductStockService) GetLotNoList(
 	}
 
 	// ===== case 2: lot_no ว่าง → เอาทั้งหมด =====
-	result, err := col.Distinct(ctx, "lot_no", bson.M{})
+	result, err := col.Distinct(ctx, "lots_no", bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +55,9 @@ func (s *ProductStockService) GetLotNoList(
 	lotList := make([]string, 0, len(result))
 	for _, v := range result {
 		if s, ok := v.(string); ok {
-			lotList = append(lotList, s)
+			if s != "" {
+				lotList = append(lotList, s)
+			}
 		}
 	}
 
