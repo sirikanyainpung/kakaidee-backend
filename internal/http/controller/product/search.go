@@ -72,15 +72,12 @@ func (c *ProductController) Get(ctx echo.Context) error {
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 	now := time.Now().In(loc)
 
-	req := struct {
-		Keyword       string `query:"keyword"`
-		SKUCode       string `query:"sku_code"`
-		CategoryCode  string `query:"category_code"`
-		WarehouseName string `query:"warehouse_name"`
-		LotNo         string `query:"lot_no"`
-		Status        string `query:"status"`
-	}{}
-
+	keyword := ctx.QueryParam("keyword")
+	skuCode := ctx.QueryParam("sku_code")
+	categoryCode := ctx.QueryParam("category_code")
+	warehouseName := ctx.QueryParam("warehouse_name")
+	lotNo := ctx.QueryParam("lot_no")
+	status := ctx.QueryParam("status")
 	pageStr := ctx.QueryParam("page")
 	limitStr := ctx.QueryParam("limit")
 
@@ -96,23 +93,14 @@ func (c *ProductController) Get(ctx echo.Context) error {
 
 	skip := (page - 1) * limit
 
-	helper.PrintStructJson(" ----- page ----- ")
-	helper.PrintStructJson(page)
-	helper.PrintStructJson(" ----- limit ----- ")
-	helper.PrintStructJson(limit)
-	helper.PrintStructJson(" ----- skip ----- ")
-	helper.PrintStructJson(skip)
-
-	// return nil
-
 	result, err := c.svc.Get(
 		ctx.Request().Context(),
-		req.Keyword,
-		req.SKUCode,
-		req.CategoryCode,
-		req.WarehouseName,
-		req.LotNo,
-		req.Status,
+		keyword,
+		skuCode,
+		categoryCode,
+		warehouseName,
+		lotNo,
+		status,
 		now,
 		page,
 		limit,
