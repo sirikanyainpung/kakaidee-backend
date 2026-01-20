@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"kakaidee-backend/internal/models"
+	payloadProduct "kakaidee-backend/internal/payload/product"
 )
 
 type ProductStockService struct {
@@ -21,10 +22,10 @@ func NewProductStockService(db *mongo.Database) *ProductStockService {
 func (s *ProductStockService) GetLotNoList(
 	ctx context.Context,
 	lotNo string,
-) ([]string, error) {
+) ([]payloadProduct.LotsListResponse, error) {
 
 	col := s.db.Collection(models.ProductStock{}.CollectionName())
-
+	var lotList []payloadProduct.LotsListResponse
 	// ===== case 1: lot_no มีค่า =====
 	if lotNo != "" {
 		filter := bson.M{"lots_no": lotNo}
@@ -34,11 +35,12 @@ func (s *ProductStockService) GetLotNoList(
 			return nil, err
 		}
 
-		lotList := make([]string, 0, len(result))
 		for _, v := range result {
 			if s, ok := v.(string); ok {
 				if s != "" {
-					lotList = append(lotList, s)
+					lotList = append(lotList, payloadProduct.LotsListResponse{
+						LotsNo: s,
+					})
 				}
 			}
 		}
@@ -52,11 +54,12 @@ func (s *ProductStockService) GetLotNoList(
 		return nil, err
 	}
 
-	lotList := make([]string, 0, len(result))
 	for _, v := range result {
 		if s, ok := v.(string); ok {
 			if s != "" {
-				lotList = append(lotList, s)
+				lotList = append(lotList, payloadProduct.LotsListResponse{
+					LotsNo: s,
+				})
 			}
 		}
 	}
@@ -68,9 +71,10 @@ func (s *ProductStockService) GetLotNoList(
 func (s *ProductStockService) GetByWarehouseName(
 	ctx context.Context,
 	warehouseName string,
-) ([]string, error) {
+) ([]payloadProduct.WMSListResponse, error) {
 
 	col := s.db.Collection(models.ProductStock{}.CollectionName())
+	var wmsList []payloadProduct.WMSListResponse
 
 	// ===== case 1: warehouses_name มีค่า =====
 	if warehouseName != "" {
@@ -81,11 +85,12 @@ func (s *ProductStockService) GetByWarehouseName(
 			return nil, err
 		}
 
-		wmsList := make([]string, 0, len(result))
 		for _, v := range result {
 			if s, ok := v.(string); ok {
 				if s != "" {
-					wmsList = append(wmsList, s)
+					wmsList = append(wmsList, payloadProduct.WMSListResponse{
+						WmsName: s,
+					})
 				}
 			}
 		}
@@ -99,11 +104,12 @@ func (s *ProductStockService) GetByWarehouseName(
 		return nil, err
 	}
 
-	wmsList := make([]string, 0, len(result))
 	for _, v := range result {
 		if s, ok := v.(string); ok {
 			if s != "" {
-				wmsList = append(wmsList, s)
+				wmsList = append(wmsList, payloadProduct.WMSListResponse{
+					WmsName: s,
+				})
 			}
 		}
 	}
