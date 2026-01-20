@@ -208,7 +208,7 @@ func (s *ProductService) GetV2(
 
 	// ===== 5. lookup category =====
 	pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
-		"from":         "category_master",
+		"from":         "category_masters",
 		"localField":   "category_code",
 		"foreignField": "category_code",
 		"as":           "category",
@@ -216,7 +216,7 @@ func (s *ProductService) GetV2(
 
 	// ===== 6. lookup supplier =====
 	pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
-		"from":         "supplier_master",
+		"from":         "supplier_masters",
 		"localField":   "supplier_code",
 		"foreignField": "supplier_code",
 		"as":           "supplier",
@@ -224,7 +224,7 @@ func (s *ProductService) GetV2(
 
 	// ===== 7. lookup brand =====
 	pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
-		"from":         "brand_master",
+		"from":         "brand_masters",
 		"localField":   "brand_code",
 		"foreignField": "brand_code",
 		"as":           "brand",
@@ -237,7 +237,7 @@ func (s *ProductService) GetV2(
 		bson.D{{"$unwind", bson.M{"path": "$brand", "preserveNullAndEmptyArrays": true}}},
 	)
 
-	// ===== 9. project =====
+	// ===== 9. project (RESULT FINAL) =====
 	pipeline = append(pipeline, bson.D{
 		{"$project", bson.M{
 			"_id": 0,
@@ -247,29 +247,154 @@ func (s *ProductService) GetV2(
 			"product_name":        1,
 			"product_description": 1,
 
+			"brand_code": 1,
+			"brand_name": "$brand.brand_name",
+
 			"category_code": 1,
 			"category_name": "$category.category_name",
 
 			"supplier_code": 1,
 			"supplier_name": "$supplier.supplier_name",
 
-			"brand_code": 1,
-			"brand_name": "$brand.brand_name",
-
-			"warehouse_name": "$stock.warehouses_name",
-			"lot_no":         "$stock.lots_no",
-
+			"cost_price":  1,
 			"balance_qty": 1,
 			"unit":        1,
-			"cost_price":  1,
-			"status":      1,
-			"created_by":  1,
-			"updated_by":  1,
-			"created_at":  1,
-			"updated_at":  1,
+
+			"warehouse_name": "$stock.warehouses_name",
+			"warehouse_zone": "$stock.warehouses_zone",
+			"bin":            "$stock.bin",
+			"stock_type":     "$stock.stock_type",
+			"lot_no":         "$stock.lots_no",
+			"mfg":            "$stock.mfg",
+			"exp":            "$stock.exp",
+
+			"status":     1,
+			"created_at": 1,
+			"created_by": 1,
+			"updated_at": 1,
+			"updated_by": 1,
 		}},
-	},
-	)
+	})
+
+	// // ===== 1. match product_master =====
+	// match := bson.M{}
+
+	// if keyword != "" {
+	// 	match["$or"] = []bson.M{
+	// 		{"barcode": bson.M{"$regex": keyword, "$options": "i"}},
+	// 		{"product_name": bson.M{"$regex": keyword, "$options": "i"}},
+	// 	}
+	// }
+
+	// if skuCode != "" {
+	// 	match["sku_code"] = skuCode
+	// }
+
+	// if categoryCode != "" {
+	// 	match["category_code"] = categoryCode
+	// }
+
+	// if status != "" {
+	// 	match["status"] = status
+	// }
+
+	// if len(match) > 0 {
+	// 	pipeline = append(pipeline, bson.D{{"$match", match}})
+	// }
+
+	// // ===== 2. lookup product_stock =====
+	// pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
+	// 	"from":         "product_stock",
+	// 	"localField":   "sku_code",
+	// 	"foreignField": "sku_code",
+	// 	"as":           "stock",
+	// }}})
+
+	// // ===== 3. unwind stock =====
+	// pipeline = append(pipeline, bson.D{{"$unwind", bson.M{
+	// 	"path":                       "$stock",
+	// 	"preserveNullAndEmptyArrays": true,
+	// }}})
+
+	// // ===== 4. filter stock =====
+	// stockMatch := bson.M{}
+
+	// if warehouseName != "" {
+	// 	stockMatch["stock.warehouses_name"] = warehouseName
+	// }
+
+	// if lotsNo != "" {
+	// 	stockMatch["stock.lots_no"] = lotsNo
+	// }
+
+	// if len(stockMatch) > 0 {
+	// 	pipeline = append(pipeline, bson.D{{"$match", stockMatch}})
+	// }
+
+	// // ===== 5. lookup category =====
+	// pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
+	// 	"from":         "category_master",
+	// 	"localField":   "category_code",
+	// 	"foreignField": "category_code",
+	// 	"as":           "category",
+	// }}})
+
+	// // ===== 6. lookup supplier =====
+	// pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
+	// 	"from":         "supplier_master",
+	// 	"localField":   "supplier_code",
+	// 	"foreignField": "supplier_code",
+	// 	"as":           "supplier",
+	// }}})
+
+	// // ===== 7. lookup brand =====
+	// pipeline = append(pipeline, bson.D{{"$lookup", bson.M{
+	// 	"from":         "brand_master",
+	// 	"localField":   "brand_code",
+	// 	"foreignField": "brand_code",
+	// 	"as":           "brand",
+	// }}})
+
+	// // ===== 8. unwind master =====
+	// pipeline = append(pipeline,
+	// 	bson.D{{"$unwind", bson.M{"path": "$category", "preserveNullAndEmptyArrays": true}}},
+	// 	bson.D{{"$unwind", bson.M{"path": "$supplier", "preserveNullAndEmptyArrays": true}}},
+	// 	bson.D{{"$unwind", bson.M{"path": "$brand", "preserveNullAndEmptyArrays": true}}},
+	// )
+
+	// // ===== 9. project =====
+	// pipeline = append(pipeline, bson.D{
+	// 	{"$project", bson.M{
+	// 		"_id": 0,
+
+	// 		"barcode":             1,
+	// 		"sku_code":            1,
+	// 		"product_name":        1,
+	// 		"product_description": 1,
+
+	// 		"category_code": 1,
+	// 		"category_name": "$category.category_name",
+
+	// 		"supplier_code": 1,
+	// 		"supplier_name": "$supplier.supplier_name",
+
+	// 		"brand_code": 1,
+	// 		"brand_name": "$brand.brand_name",
+
+	// 		"warehouse_name": "$stock.warehouses_name",
+	// 		"lot_no":         "$stock.lots_no",
+
+	// 		"balance_qty": 1,
+	// 		"unit":        1,
+	// 		"cost_price":  1,
+	// 		"status":      1,
+	// 		"created_by":  1,
+	// 		"updated_by":  1,
+	// 		"created_at":  1,
+	// 		"updated_at":  1,
+	// 	}},
+	// },
+	// )
 
 	cur, err := s.db.
 		Collection(models.Product{}.CollectionName()).
