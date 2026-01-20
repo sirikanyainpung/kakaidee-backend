@@ -68,24 +68,45 @@ func (s *ProductStockService) GetLotNoList(
 func (s *ProductStockService) GetByWarehouseName(
 	ctx context.Context,
 	warehouseName string,
-) ([]models.ProductStock, error) {
+) ([]string, error) {
 
-	filter := bson.M{
-		"warehouses_name": warehouseName,
+	col := s.db.Collection(models.ProductStock{}.CollectionName())
+
+	// ===== case 1: warehouses_name มีค่า =====
+	if warehouseName != "" {
+		filter := bson.M{"warehouses_name": warehouseName}
+
+		result, err := col.Distinct(ctx, "warehouses_name", filter)
+		if err != nil {
+			return nil, err
+		}
+
+		wmsList := make([]string, 0, len(result))
+		for _, v := range result {
+			if s, ok := v.(string); ok {
+				if s != "" {
+					wmsList = append(wmsList, s)
+				}
+			}
+		}
+
+		return wmsList, nil
 	}
 
-	cur, err := s.db.
-		Collection(models.ProductStock{}.CollectionName()).
-		Find(ctx, filter)
+	// ===== case 2: warehouses_name ว่าง → เอาทั้งหมด =====
+	result, err := col.Distinct(ctx, "warehouses_name", bson.M{})
 	if err != nil {
 		return nil, err
 	}
-	defer cur.Close(ctx)
 
-	var result []models.ProductStock
-	if err := cur.All(ctx, &result); err != nil {
-		return nil, err
+	wmsList := make([]string, 0, len(result))
+	for _, v := range result {
+		if s, ok := v.(string); ok {
+			if s != "" {
+				wmsList = append(wmsList, s)
+			}
+		}
 	}
 
-	return result, nil
+	return wmsList, nil
 }

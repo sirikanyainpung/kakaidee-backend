@@ -34,18 +34,13 @@ func (c *ProductStockController) GetByLotNo(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK,
-		helper.Success("Get lot_no list success.", result),
+		helper.Success("Get lots_no list success.", result),
 	)
 }
 
 // ===== GET by warehouse_name =====
 func (c *ProductStockController) GetByWarehouseName(ctx echo.Context) error {
 	warehouse := ctx.QueryParam("keyword")
-	if warehouse == "" {
-		return ctx.JSON(http.StatusBadRequest,
-			helper.Error(400, "bad request", "warehouse_name is required"),
-		)
-	}
 
 	result, err := c.svc.GetByWarehouseName(
 		ctx.Request().Context(),
@@ -58,6 +53,6 @@ func (c *ProductStockController) GetByWarehouseName(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK,
-		helper.Success("Get product stock by warehouse success.", result),
+		helper.Success("Get warehouse name list success.", result),
 	)
 }
