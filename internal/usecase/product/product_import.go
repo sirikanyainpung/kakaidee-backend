@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"mime/multipart"
 	"strconv"
 	"strings"
@@ -23,6 +24,10 @@ func (s *ProductService) ImportFromExcel(
 	createdBy string,
 	now time.Time,
 ) (map[string]interface{}, error) {
+
+	rand.Seed(time.Now().UnixNano())
+	randomInt := rand.Intn(1000000000) + 1
+	requestID := "103-" + strconv.Itoa(randomInt)
 
 	if s.db == nil {
 		return nil, errors.New("database not initialized")
@@ -202,6 +207,7 @@ func (s *ProductService) ImportFromExcel(
 				success+successStock,
 				201,
 				"created",
+				requestID,
 			))
 	}
 
@@ -218,6 +224,7 @@ func (s *ProductService) ImportFromExcel(
 				len(failed)+failedStock,
 				400,
 				"fail",
+				requestID,
 			))
 	}
 
@@ -277,6 +284,7 @@ func buildLog(
 	countData int,
 	statusCode int,
 	statusMessage string,
+	requestID string,
 ) models.TransactionLog {
 
 	loc, _ := time.LoadLocation("Asia/Bangkok")

@@ -3,6 +3,8 @@ package product
 import (
 	"context"
 	"errors"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,6 +25,11 @@ func (s *ProductService) Create(
 	ctx context.Context,
 	req payloadProduct.CreateProductRequest,
 ) error {
+
+	rand.Seed(time.Now().UnixNano())
+	randomInt := rand.Intn(1000000000) + 1
+	requestID := "101-" + strconv.Itoa(randomInt)
+
 	now := time.Now()
 	if s.db == nil {
 		return errors.New("database not initialized")
@@ -72,7 +79,7 @@ func (s *ProductService) Create(
 	}
 
 	logProductStock := models.TransactionLog{
-		RequestID:          "",
+		RequestID:          requestID,
 		FunctionEndpoint:   "product/create",
 		FunctionMethod:     "POST",
 		FunctionName:       "CreateProduct",
@@ -99,7 +106,7 @@ func (s *ProductService) Create(
 	_, _ = s.db.Collection(logProductStock.CollectionName()).InsertOne(ctx, logProductStock)
 
 	logProduct := models.TransactionLog{
-		RequestID:          "",
+		RequestID:          requestID,
 		FunctionEndpoint:   "product/create",
 		FunctionMethod:     "POST",
 		FunctionName:       "CreateProduct",

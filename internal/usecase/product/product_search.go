@@ -2,6 +2,8 @@ package product
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -386,7 +388,12 @@ func (s *ProductService) Get(
 	skip int,
 ) ([]bson.M, error) {
 
-	endpoint := "product?keyword=" + keyword + "&sku_code=" + skuCode + "&category_code=" + categoryCode + "&warehouse_name=" + warehouseName + "&lot_no=" + lotsNo + "&status=" + status
+	endpoint := "product?keyword="
+
+	rand.Seed(time.Now().UnixNano())
+	randomInt := rand.Intn(1000000000) + 1
+	requestID := "102-" + strconv.Itoa(randomInt)
+
 	pipeline := mongo.Pipeline{}
 
 	// ===== 1. match product_master =====
@@ -561,7 +568,7 @@ func (s *ProductService) Get(
 		helper.PrintStructJson(err)
 		end := time.Now()
 		logProduct := models.TransactionLog{
-			RequestID:          "",
+			RequestID:          requestID,
 			FunctionEndpoint:   endpoint,
 			FunctionMethod:     "GET",
 			FunctionName:       "SearchProduct",
@@ -590,7 +597,7 @@ func (s *ProductService) Get(
 		helper.PrintStructJson(err)
 		end := time.Now()
 		logProduct := models.TransactionLog{
-			RequestID:          "",
+			RequestID:          requestID,
 			FunctionEndpoint:   endpoint,
 			FunctionMethod:     "GET",
 			FunctionName:       "SearchProduct",
@@ -614,7 +621,7 @@ func (s *ProductService) Get(
 
 	end := time.Now()
 	logProduct := models.TransactionLog{
-		RequestID:          "",
+		RequestID:          requestID,
 		FunctionEndpoint:   endpoint,
 		FunctionMethod:     "GET",
 		FunctionName:       "SearchProduct",
