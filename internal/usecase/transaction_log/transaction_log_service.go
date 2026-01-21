@@ -2,6 +2,7 @@ package transactionLog
 
 import (
 	"context"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -26,26 +27,55 @@ func (s *TransactionLogService) GetTransactionLog(
 	page int,
 	limit int,
 	skip int,
-) ([]bson.M, error) {
+) (map[string]interface{}, error) {
 
 	rand.Seed(time.Now().UnixNano())
 	randomInt := rand.Intn(1000000000) + 1
 	requestID := "201-" + strconv.Itoa(randomInt)
 
-	pipeline := mongo.Pipeline{}
+	// Step 1: สร้าง pipeline สำหรับการคำนวณจำนวนข้อมูลทั้งหมด
+	countPipeline := mongo.Pipeline{
+		{{"$group", bson.D{
+			{Key: "_id", Value: nil},                                    // ไม่แบ่งกลุ่ม
+			{Key: "totalCount", Value: bson.D{{Key: "$sum", Value: 1}}}, // นับจำนวนเอกสาร
+		}}},
+	}
 
-	pipeline = append(pipeline, bson.D{
-		{"$sort", bson.D{{"created_at", -1}}}, // sort by created_at DESC
-	})
+	// ดึงจำนวนข้อมูลทั้งหมดจาก countPipeline
+	cur, err := s.db.
+		Collection(models.TransactionLog{}.CollectionName()).
+		Aggregate(ctx, countPipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
 
-	pipeline = append(pipeline,
-		bson.D{{"$skip", skip}},
-		bson.D{{"$limit", limit}},
-	)
+	var countResult []struct {
+		TotalCount int `bson:"totalCount"`
+	}
 
-	// ขั้นตอนแรก: Project ฟิลด์ที่ต้องการ
-	pipeline = append(pipeline, bson.D{
-		{"$project", bson.M{
+	if err := cur.All(ctx, &countResult); err != nil {
+		return nil, err
+	}
+
+	// จำนวนข้อมูลทั้งหมด
+	totalCount := 0
+	if len(countResult) > 0 {
+		totalCount = countResult[0].TotalCount
+	}
+
+	// คำนวณจำนวนหน้าทั้งหมด
+	totalPages := 0
+	if totalCount > 0 {
+		totalPages = int(math.Ceil(float64(totalCount) / float64(limit)))
+	}
+
+	// Step 3: สร้าง pipeline สำหรับการดึงข้อมูลที่กรองตาม filter (match, skip, limit, project)
+	pipeline := mongo.Pipeline{
+		{{"$sort", bson.D{{"created_at", -1}}}}, // sort by created_at DESC
+		{{"$skip", skip}},                       // skip ตามหน้าที่ต้องการ
+		{{"$limit", limit}},                     // limit จำนวนข้อมูลตามที่ต้องการ
+		{{"$project", bson.M{
 			"_id":              0,
 			"count_data":       1,
 			"created_by":       1,
@@ -59,15 +89,12 @@ func (s *TransactionLogService) GetTransactionLog(
 			"status_code":      1,
 			"status_message":   1,
 			"user_id":          1,
-		}},
-	})
+		}}},
+		{{"$unset", bson.A{"created_at", "end_time", "environment", "function_controller", "function_endpoint", "role"}}},
+	}
 
-	// ขั้นตอนที่สอง: ใช้ $unset เพื่อลบฟิลด์ที่ไม่ต้องการ
-	pipeline = append(pipeline, bson.D{
-		{"$unset", bson.A{"created_at", "end_time", "environment", "function_controller", "function_endpoint", "role"}},
-	})
-
-	cur, err := s.db.
+	// Step 4: ดึงข้อมูลจาก MongoDB ตาม pipeline ที่กำหนด
+	cur, err = s.db.
 		Collection(models.TransactionLog{}.CollectionName()).
 		Aggregate(ctx, pipeline)
 	if err != nil {
@@ -80,6 +107,7 @@ func (s *TransactionLogService) GetTransactionLog(
 		return nil, err
 	}
 
+	// Step 5: บันทึกข้อมูล Log
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 	end := time.Now().In(loc)
 	logCategory := models.TransactionLog{
@@ -102,5 +130,12 @@ func (s *TransactionLogService) GetTransactionLog(
 	}
 	_, _ = s.db.Collection(logCategory.CollectionName()).InsertOne(ctx, logCategory)
 
-	return result, nil
+	// Step 6: ส่งผลลัพธ์ทั้งหมด
+	response := map[string]interface{}{
+		"total_data":  totalCount, // จำนวนข้อมูลทั้งหมด
+		"total_pages": totalPages, // จำนวนหน้าทั้งหมด
+		"data":        result,     // ข้อมูลที่กรองตาม filter
+	}
+
+	return response, nil
 }
