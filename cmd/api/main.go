@@ -16,6 +16,7 @@ import (
 	productStockController "kakaidee-backend/internal/http/controller/product_stock"
 	staffsController "kakaidee-backend/internal/http/controller/staffs"
 	supplierController "kakaidee-backend/internal/http/controller/supplier"
+	transactionLogController "kakaidee-backend/internal/http/controller/transaction_log"
 	unitController "kakaidee-backend/internal/http/controller/unit"
 
 	// usecases
@@ -25,6 +26,7 @@ import (
 	productStockUsecase "kakaidee-backend/internal/usecase/product_stock"
 	staffsUsecase "kakaidee-backend/internal/usecase/staffs"
 	supplierUsecase "kakaidee-backend/internal/usecase/supplier"
+	transactionLogUsecase "kakaidee-backend/internal/usecase/transaction_log"
 	unitUsecase "kakaidee-backend/internal/usecase/unit"
 )
 
@@ -71,6 +73,7 @@ func main() {
 	categoryService := categoryUsecase.NewCategoryService(db)
 	supplierService := supplierUsecase.NewSupplierService(db)
 	unitService := unitUsecase.NewUnitService(db)
+	transactionLogService := transactionLogUsecase.NewTransactionLogService(db)
 
 	// ===== Controller =====
 	productCtrl := productController.NewProductsController(productService)
@@ -80,16 +83,18 @@ func main() {
 	categoryCtrl := categoryController.NewCategoryController(categoryService)
 	supplierCtrl := supplierController.NewSupplierController(supplierService)
 	unitCtrl := unitController.NewUnitController(unitService)
+	ransactionLogCtrl := transactionLogController.NewTransactionLogController(transactionLogService)
 
 	// ===== Router =====
 	router.Register(e, router.Handlers{
-		Product:      productCtrl,
-		ProductStock: productStockCtrl,
-		Staffs:       staffsCtrl,
-		Brand:        brandCtrl,
-		Category:     categoryCtrl,
-		Supplier:     supplierCtrl,
-		Unit:         unitCtrl,
+		Product:        productCtrl,
+		ProductStock:   productStockCtrl,
+		Staffs:         staffsCtrl,
+		Brand:          brandCtrl,
+		Category:       categoryCtrl,
+		Supplier:       supplierCtrl,
+		Unit:           unitCtrl,
+		TransactionLog: ransactionLogCtrl,
 	})
 
 	// ===== Start Server =====

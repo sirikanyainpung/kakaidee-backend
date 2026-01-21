@@ -47,7 +47,8 @@ func (s *UnitService) Get(
 		return nil, err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logUnit := models.TransactionLog{
 		RequestID:          "",
 		FunctionEndpoint:   "unit?keyword=" + keyword,

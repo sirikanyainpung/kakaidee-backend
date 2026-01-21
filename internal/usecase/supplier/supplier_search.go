@@ -49,7 +49,8 @@ func (s *SupplierService) Get(
 		return nil, err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logCategory := models.TransactionLog{
 		RequestID:          "",
 		FunctionEndpoint:   "category?keyword=" + keyword,

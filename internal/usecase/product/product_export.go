@@ -120,7 +120,8 @@ func (s *ProductService) Export(
 		return nil, err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logProduct := models.TransactionLog{
 		RequestID:          "",
 		FunctionEndpoint:   "product?keyword=" + keyword,
@@ -299,7 +300,8 @@ func (s *ProductService) ExportExcel(
 		Aggregate(ctx, pipeline)
 	if err != nil {
 
-		end := time.Now()
+		loc, _ := time.LoadLocation("Asia/Bangkok")
+		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
 			RequestID:          "",
 			FunctionEndpoint:   endpoint,
@@ -327,7 +329,8 @@ func (s *ProductService) ExportExcel(
 	var data []bson.M
 	if err := cur.All(ctx, &data); err != nil {
 
-		end := time.Now()
+		loc, _ := time.LoadLocation("Asia/Bangkok")
+		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
 			RequestID:          "",
 			FunctionEndpoint:   endpoint,
@@ -351,7 +354,8 @@ func (s *ProductService) ExportExcel(
 		return "", "", err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logProduct := models.TransactionLog{
 		RequestID:          "",
 		FunctionEndpoint:   endpoint,

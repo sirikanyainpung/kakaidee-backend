@@ -297,7 +297,8 @@ func (s *ProductService) GetV2(
 		Aggregate(ctx, pipeline)
 	if err != nil {
 
-		end := time.Now()
+		loc, _ := time.LoadLocation("Asia/Bangkok")
+		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
 			RequestID:          "",
 			FunctionEndpoint:   endpoint,
@@ -325,7 +326,8 @@ func (s *ProductService) GetV2(
 	var result []bson.M
 	if err := cur.All(ctx, &result); err != nil {
 
-		end := time.Now()
+		loc, _ := time.LoadLocation("Asia/Bangkok")
+		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
 			RequestID:          "",
 			FunctionEndpoint:   endpoint,
@@ -349,7 +351,8 @@ func (s *ProductService) GetV2(
 		return nil, err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logProduct := models.TransactionLog{
 		RequestID:          "",
 		FunctionEndpoint:   endpoint,
@@ -566,7 +569,9 @@ func (s *ProductService) Get(
 	if err != nil {
 		helper.PrintStructJson(" ----- err Aggregate ----- ")
 		helper.PrintStructJson(err)
-		end := time.Now()
+
+		loc, _ := time.LoadLocation("Asia/Bangkok")
+		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
 			RequestID:          requestID,
 			FunctionEndpoint:   endpoint,
@@ -595,7 +600,9 @@ func (s *ProductService) Get(
 	if err := cur.All(ctx, &result); err != nil {
 		helper.PrintStructJson(" ----- err Result ----- ")
 		helper.PrintStructJson(err)
-		end := time.Now()
+
+		loc, _ := time.LoadLocation("Asia/Bangkok")
+		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
 			RequestID:          requestID,
 			FunctionEndpoint:   endpoint,
@@ -619,7 +626,8 @@ func (s *ProductService) Get(
 		return nil, err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logProduct := models.TransactionLog{
 		RequestID:          requestID,
 		FunctionEndpoint:   endpoint,
@@ -828,7 +836,8 @@ func (s *ProductService) Get(
 // 	if err != nil {
 // 		helper.PrintStructJson(" ----- err Aggregate ----- ")
 // 		helper.PrintStructJson(err)
-// 		end := time.Now()
+// 		loc, _ := time.LoadLocation("Asia/Bangkok")
+//      end := time.Now().In(loc)
 // 		logProduct := models.TransactionLog{
 // 			RequestID:          "",
 // 			FunctionEndpoint:   endpoint,

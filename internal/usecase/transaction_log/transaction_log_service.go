@@ -1,7 +1,9 @@
-package category
+package transactionLog
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -10,38 +12,31 @@ import (
 	"kakaidee-backend/internal/models"
 )
 
-type CategoryService struct {
+type TransactionLogService struct {
 	db *mongo.Database
 }
 
-func NewCategoryService(db *mongo.Database) *CategoryService {
-	return &CategoryService{db: db}
+func NewTransactionLogService(db *mongo.Database) *TransactionLogService {
+	return &TransactionLogService{db: db}
 }
 
-func (s *CategoryService) Get(
+func (s *TransactionLogService) GetTransactionLog(
 	ctx context.Context,
-	keyword string,
 	now time.Time,
 ) ([]bson.M, error) {
 
-	// now := time.Now()
+	rand.Seed(time.Now().UnixNano())
+	randomInt := rand.Intn(1000000000) + 1
+	requestID := "201-" + strconv.Itoa(randomInt)
 
 	pipeline := mongo.Pipeline{}
 
-	// ===== 1. match (search) =====
-	if keyword != "" {
-		pipeline = append(pipeline, bson.D{
-			{"$match", bson.M{
-				"$or": []bson.M{
-					{"category_code": bson.M{"$regex": keyword, "$options": "i"}},
-					{"category_name": bson.M{"$regex": keyword, "$options": "i"}},
-				},
-			}},
-		})
-	}
+	pipeline = append(pipeline, bson.D{
+		{"$sort", bson.D{{"created_at", -1}}}, // sort by created_at DESC
+	})
 
 	cur, err := s.db.
-		Collection(models.Category{}.CollectionName()).
+		Collection(models.TransactionLog{}.CollectionName()).
 		Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
@@ -56,13 +51,13 @@ func (s *CategoryService) Get(
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 	end := time.Now().In(loc)
 	logCategory := models.TransactionLog{
-		RequestID:          "",
-		FunctionEndpoint:   "category?keyword=" + keyword,
+		RequestID:          requestID,
+		FunctionEndpoint:   "transaction-log",
 		FunctionMethod:     "GET",
-		FunctionName:       "SearchCategory",
-		FunctionController: "Category",
+		FunctionName:       "GetTransactionLog",
+		FunctionController: "TransactionLog",
 		Environment:        "local",
-		QueryCollection:    "category_masters",
+		QueryCollection:    "transaction_log",
 		QueryType:          "query",
 		StartTime:          now,
 		EndTime:            end,

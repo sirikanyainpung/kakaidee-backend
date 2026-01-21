@@ -51,7 +51,8 @@ func (s *BrandService) Get(
 		return nil, err
 	}
 
-	end := time.Now()
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
 	logBrand := models.TransactionLog{
 		RequestID:          "",
 		FunctionEndpoint:   "brand?keyword=" + keyword,
