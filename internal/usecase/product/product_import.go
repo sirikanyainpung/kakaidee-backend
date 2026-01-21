@@ -55,6 +55,7 @@ func (s *ProductService) ImportFromExcel(
 		failedStock  int
 		success      int
 		failed       []string
+		failMassage  string
 	)
 
 	// ===== parse rows =====
@@ -66,8 +67,10 @@ func (s *ProductService) ImportFromExcel(
 		// ต้องมีอย่างน้อย 17 columns (0-16)
 		if len(row) < 17 {
 			failed = append(failed,
-				fmt.Sprintf("row %d: invalid column length (%d)", i+1, len(row)),
+				fmt.Sprintf("แถว %d: invalid column length (%d)", i+1, len(row)),
 			)
+
+			failMassage = fmt.Sprintf("แถว %d", i+1)
 			continue
 		}
 
@@ -126,6 +129,11 @@ func (s *ProductService) ImportFromExcel(
 			failed = append(failed,
 				fmt.Sprintf("row %d: Insert product_stock failed: %v", i+1, err),
 			)
+			if failMassage == "" {
+				failMassage = fmt.Sprintf("แถว %d", i+1)
+			} else {
+				failMassage = failMassage + "," + fmt.Sprintf("แถว %d", i+1)
+			}
 
 			failedStock++
 			continue
@@ -183,6 +191,13 @@ func (s *ProductService) ImportFromExcel(
 				failed = append(failed,
 					fmt.Sprintf("row %d: Insert product failed: %v", i+1, err),
 				)
+
+				if failMassage == "" {
+					failMassage = fmt.Sprintf("แถว %d", i+1)
+				} else {
+					failMassage = failMassage + "," + fmt.Sprintf("แถว %d", i+1)
+				}
+
 				continue
 			}
 			// failed = append(failed,
@@ -228,9 +243,17 @@ func (s *ProductService) ImportFromExcel(
 			))
 	}
 
+	resutlMassage := ""
+	if failMassage == "" {
+		resutlMassage = "เพิ่มข้อมูลสำเร็จ " + strconv.Itoa(success) + " ข้อมูล"
+	} else {
+		resutlMassage = "เพิ่มข้อมูลสำเร็จ " + strconv.Itoa(success) + " ข้อมูล และเพิ่มข้อมูลไม่สำเร็จ " + strconv.Itoa(len(failed)+failedStock) + " ข้อมูล"
+	}
+
 	return map[string]interface{}{
-		"imported": success,
-		"failed":   failed,
+		"imported":     success,
+		"failed":       failed,
+		"finalMassage": resutlMassage,
 	}, nil
 }
 
