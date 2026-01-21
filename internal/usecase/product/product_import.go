@@ -290,6 +290,7 @@ func buildLog(
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 
 	return models.TransactionLog{
+		RequestID:          requestID,
 		FunctionEndpoint:   endpoint,
 		FunctionMethod:     "POST",
 		FunctionName:       "ImportProductExcel",

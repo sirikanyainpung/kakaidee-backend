@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"kakaidee-backend/internal/models"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -156,7 +157,11 @@ func (s *ProductService) ExportExcel(
 	now time.Time,
 ) (string, string, error) {
 
-	endpoint := "product/search-v2?keyword=" + keyword + "&sku_code=" + skuCode + "&category_code=" + categoryCode + "&warehouse_name=" + warehouseName + "&lot_no=" + lotsNo + "&status=" + status
+	endpoint := "product/export"
+	rand.Seed(time.Now().UnixNano())
+	randomInt := rand.Intn(1000000000) + 1
+	requestID := "102-" + strconv.Itoa(randomInt)
+
 	pipeline := mongo.Pipeline{}
 
 	// ===== 1. match product_master =====
@@ -303,7 +308,7 @@ func (s *ProductService) ExportExcel(
 		loc, _ := time.LoadLocation("Asia/Bangkok")
 		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
-			RequestID:          "",
+			RequestID:          requestID,
 			FunctionEndpoint:   endpoint,
 			FunctionMethod:     "GET",
 			FunctionName:       "SearchProduct",
@@ -332,7 +337,7 @@ func (s *ProductService) ExportExcel(
 		loc, _ := time.LoadLocation("Asia/Bangkok")
 		end := time.Now().In(loc)
 		logProduct := models.TransactionLog{
-			RequestID:          "",
+			RequestID:          requestID,
 			FunctionEndpoint:   endpoint,
 			FunctionMethod:     "GET",
 			FunctionName:       "SearchProduct",
@@ -353,28 +358,6 @@ func (s *ProductService) ExportExcel(
 
 		return "", "", err
 	}
-
-	loc, _ := time.LoadLocation("Asia/Bangkok")
-	end := time.Now().In(loc)
-	logProduct := models.TransactionLog{
-		RequestID:          "",
-		FunctionEndpoint:   endpoint,
-		FunctionMethod:     "GET",
-		FunctionName:       "SearchProduct",
-		FunctionController: "Product",
-		Environment:        "local",
-		QueryCollection:    "product_master",
-		QueryType:          "query",
-		StartTime:          now,
-		EndTime:            end,
-		DurationMs:         end.Sub(now).Milliseconds(),
-		CountData:          len(data),
-		StatusCode:         200,
-		StatusMessage:      "success",
-		CreatedBy:          "admin",
-		CreatedAt:          now,
-	}
-	_, _ = s.db.Collection(logProduct.CollectionName()).InsertOne(ctx, logProduct)
 
 	f := excelize.NewFile()
 	sheet := "Products"
@@ -436,6 +419,28 @@ func (s *ProductService) ExportExcel(
 		"product_export_%s.xlsx",
 		time.Now().Format("20060102_150405"),
 	)
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	end := time.Now().In(loc)
+	logProduct := models.TransactionLog{
+		RequestID:          requestID,
+		FunctionEndpoint:   endpoint,
+		FunctionMethod:     "GET",
+		FunctionName:       "SearchProduct",
+		FunctionController: "Product",
+		Environment:        "local",
+		QueryCollection:    "product_master",
+		QueryType:          "query",
+		StartTime:          now,
+		EndTime:            end,
+		DurationMs:         end.Sub(now).Milliseconds(),
+		CountData:          len(data),
+		StatusCode:         200,
+		StatusMessage:      "success",
+		CreatedBy:          "admin",
+		CreatedAt:          now,
+	}
+	_, _ = s.db.Collection(logProduct.CollectionName()).InsertOne(ctx, logProduct)
 
 	return fileName, base64File, nil
 }

@@ -66,4 +66,6 @@ func Register(e *echo.Echo, h Handlers) {
 	// ===== Transaction Log =====
 	transactionLog := e.Group("/transaction-log")
 	transactionLog.GET("", h.TransactionLog.GetTransactionLog)
+	transactionLog.GET("/export", h.TransactionLog.ExportTransactionLog)
+
 }

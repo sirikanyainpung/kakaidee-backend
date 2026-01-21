@@ -37,6 +37,33 @@ func (c *TransactionLogController) GetTransactionLog(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK,
-		helper.Success("Get lots_no list success.", result),
+		helper.Success("Get transaction log success.", result),
 	)
+}
+
+// ===== Export Transaction Log =====
+func (c *TransactionLogController) ExportTransactionLog(ctx echo.Context) error {
+
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	now := time.Now().In(loc)
+
+	fileName, base64File, err := c.svc.ExportTransactionLog(
+		ctx.Request().Context(),
+		now,
+	)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			helper.Error(500, "error", err.Error()),
+		)
+	}
+
+	result := map[string]string{
+		"export_name": fileName,
+		"base64_file": base64File,
+	}
+
+	return ctx.JSON(http.StatusOK,
+		helper.Success("Export transaction log success.", result),
+	)
+
 }

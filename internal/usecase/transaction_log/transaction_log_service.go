@@ -35,6 +35,30 @@ func (s *TransactionLogService) GetTransactionLog(
 		{"$sort", bson.D{{"created_at", -1}}}, // sort by created_at DESC
 	})
 
+	// ขั้นตอนแรก: Project ฟิลด์ที่ต้องการ
+	pipeline = append(pipeline, bson.D{
+		{"$project", bson.M{
+			"_id":              0,
+			"count_data":       1,
+			"created_by":       1,
+			"duration_ms":      1,
+			"function_method":  1,
+			"function_name":    1,
+			"query_collection": 1,
+			"query_type":       1,
+			"request_id":       1,
+			"start_time":       1,
+			"status_code":      1,
+			"status_message":   1,
+			"user_id":          1,
+		}},
+	})
+
+	// ขั้นตอนที่สอง: ใช้ $unset เพื่อลบฟิลด์ที่ไม่ต้องการ
+	pipeline = append(pipeline, bson.D{
+		{"$unset", bson.A{"created_at", "end_time", "environment", "function_controller", "function_endpoint", "role"}},
+	})
+
 	cur, err := s.db.
 		Collection(models.TransactionLog{}.CollectionName()).
 		Aggregate(ctx, pipeline)
