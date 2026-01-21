@@ -2,6 +2,7 @@ package transactionLog
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -26,9 +27,27 @@ func (c *TransactionLogController) GetTransactionLog(ctx echo.Context) error {
 	loc, _ := time.LoadLocation("Asia/Bangkok")
 	now := time.Now().In(loc)
 
+	pageStr := ctx.QueryParam("page")
+	limitStr := ctx.QueryParam("limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page <= 0 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 || limit > 100 {
+		limit = 10
+	}
+
+	skip := (page - 1) * limit
+
 	result, err := c.svc.GetTransactionLog(
 		ctx.Request().Context(),
 		now,
+		page,
+		limit,
+		skip,
 	)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError,

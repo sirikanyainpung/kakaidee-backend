@@ -23,6 +23,9 @@ func NewTransactionLogService(db *mongo.Database) *TransactionLogService {
 func (s *TransactionLogService) GetTransactionLog(
 	ctx context.Context,
 	now time.Time,
+	page int,
+	limit int,
+	skip int,
 ) ([]bson.M, error) {
 
 	rand.Seed(time.Now().UnixNano())
@@ -34,6 +37,11 @@ func (s *TransactionLogService) GetTransactionLog(
 	pipeline = append(pipeline, bson.D{
 		{"$sort", bson.D{{"created_at", -1}}}, // sort by created_at DESC
 	})
+
+	pipeline = append(pipeline,
+		bson.D{{"$skip", skip}},
+		bson.D{{"$limit", limit}},
+	)
 
 	// ขั้นตอนแรก: Project ฟิลด์ที่ต้องการ
 	pipeline = append(pipeline, bson.D{
