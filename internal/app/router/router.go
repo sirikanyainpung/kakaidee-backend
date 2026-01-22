@@ -32,13 +32,13 @@ func Register(e *echo.Echo, h Handlers) {
 
 	// ===== Products =====
 	product := e.Group("/product")
-	// product.GET("", h.Product.Search)
-	product.POST("/create", h.Product.Create)
-	// product.GET("/export", h.Product.Export)
-	product.GET("/export", h.Product.ExportV2)
-	product.POST("/import/excel", h.Product.ImportExcel)
-	// product.GET("/search-v2", h.Product.Get)
 	product.GET("", h.Product.Get)
+	product.POST("/create", h.Product.Create)
+	product.GET("/export", h.Product.ExportV2)
+
+	product.POST("/import/excel", h.Product.ImportExcelV2)  // ImportExcel
+	product.POST("/import/excel-v2", h.Product.ImportExcel) // ImportExcelV2
+
 	product.GET("/all-product", h.Product.GetV2)
 	product.GET("/export/all-product", h.Product.ExportV2)
 

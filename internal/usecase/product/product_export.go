@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"kakaidee-backend/internal/helper"
 	"kakaidee-backend/internal/models"
 	"math/rand"
 	"strconv"
@@ -300,6 +301,12 @@ func (s *ProductService) ExportExcel(
 		}},
 	})
 
+	helper.PrintStructJson(" ----- Aggregate ----- ")
+
+	// เพิ่ม timeout เมื่อทำการเชื่อมต่อ
+	ctx, cancel := context.WithTimeout(context.Background(), 900*time.Second) // ใช้ 15 นาทีเป็นเวลา timeout
+	defer cancel()
+
 	cur, err := s.db.
 		Collection(models.Product{}.CollectionName()).
 		Aggregate(ctx, pipeline)
@@ -329,7 +336,6 @@ func (s *ProductService) ExportExcel(
 
 		return "", "", err
 	}
-	defer cur.Close(ctx)
 
 	var data []bson.M
 	if err := cur.All(ctx, &data); err != nil {

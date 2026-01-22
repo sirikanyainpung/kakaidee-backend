@@ -43,3 +43,38 @@ func (c *ProductController) ImportExcel(ctx echo.Context) error {
 		helper.Create("Import product success.", result),
 	)
 }
+
+func (c *ProductController) ImportExcelV2(ctx echo.Context) error {
+	ctx.Logger().Info("👉 Product Import Excel called")
+
+	// ===== get file =====
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest,
+			helper.Error(400, "bad request", "Excel file is required."),
+		)
+	}
+
+	// ===== mock created by (ปรับตาม auth จริงได้) =====
+	createdBy := "admin"
+	loc, _ := time.LoadLocation("Asia/Bangkok")
+	now := time.Now().In(loc)
+	// now := time.Now()
+
+	result, err := c.svc.ImportFromExcelV2(
+		ctx.Request().Context(),
+		fileHeader,
+		createdBy,
+		now,
+	)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError,
+			helper.Error(500, "error", err.Error()),
+		)
+	}
+
+	return ctx.JSON(
+		http.StatusCreated,
+		helper.Create("Import v2 product success.", result),
+	)
+}

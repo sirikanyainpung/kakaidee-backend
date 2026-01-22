@@ -55,13 +55,18 @@ func (s *TransactionLogService) ExportTransactionLog(
 	pipeline = append(pipeline, bson.D{
 		{"$unset", bson.A{"created_at", "end_time", "environment", "function_controller", "function_endpoint", "role"}},
 	})
+
+	// เพิ่ม timeout เมื่อทำการเชื่อมต่อ
+	ctx, cancel := context.WithTimeout(context.Background(), 900*time.Second) // ใช้ 15 นาทีเป็นเวลา timeout
+	defer cancel()
+
 	cur, err := s.db.
 		Collection(models.TransactionLog{}.CollectionName()).
 		Aggregate(ctx, pipeline)
 	if err != nil {
 		return "", "", err
 	}
-	defer cur.Close(ctx)
+	// defer cur.Close(ctx)
 
 	var result []bson.M
 	if err := cur.All(ctx, &result); err != nil {

@@ -84,7 +84,7 @@ func (s *ProductService) ImportFromExcel(
 			SupplierCode: ToInt32(row[5]),
 			BrandCode:    ToInt32(row[6]),
 
-			Unit:          strings.TrimSpace(row[7]),
+			Unit:          ToInt32(row[7]),
 			CostPrice:     ToFloat64(row[8]),
 			LotNo:         strings.TrimSpace(row[9]),
 			WarehouseName: strings.TrimSpace(row[10]),
@@ -92,7 +92,7 @@ func (s *ProductService) ImportFromExcel(
 			Bin:           strings.TrimSpace(row[12]),
 			StockType:     strings.TrimSpace(row[13]),
 
-			ReceiveQty: ToInt(row[14]),
+			ReceiveQty: ToInt32(row[14]),
 			MFG:        ToDate(row[15]),
 			EXP:        ToDate(row[16]),
 		}
@@ -111,7 +111,7 @@ func (s *ProductService) ImportFromExcel(
 			SellingQty:    0,
 			MFG:           req.MFG,
 			EXP:           req.EXP,
-			Status:        "active",
+			Status:        true,
 			CreatedBy:     createdBy,
 			UpdatedBy:     createdBy,
 			CreatedAt:     now,
@@ -164,7 +164,7 @@ func (s *ProductService) ImportFromExcel(
 			BalanceQty:         req.ReceiveQty,
 			Unit:               req.Unit,
 			CostPrice:          req.CostPrice,
-			Status:             "active",
+			Status:             true,
 			UpdatedBy:          createdBy,
 			UpdatedAt:          now,
 		}
