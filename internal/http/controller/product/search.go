@@ -38,7 +38,6 @@ func (c *ProductController) GetV2(ctx echo.Context) error {
 		CategoryCode  string `query:"category_code"`
 		WarehouseName string `query:"warehouse_name"`
 		LotNo         string `query:"lot_no"`
-		Status        string `query:"status"`
 	}{}
 
 	if err := ctx.Bind(&req); err != nil {
@@ -54,7 +53,6 @@ func (c *ProductController) GetV2(ctx echo.Context) error {
 		req.CategoryCode,
 		req.WarehouseName,
 		req.LotNo,
-		req.Status,
 		now,
 	)
 	if err != nil {
@@ -77,7 +75,6 @@ func (c *ProductController) Get(ctx echo.Context) error {
 	categoryCode := ctx.QueryParam("category_code")
 	warehouseName := ctx.QueryParam("warehouse_name")
 	lotNo := ctx.QueryParam("lot_no")
-	status := ctx.QueryParam("status")
 	pageStr := ctx.QueryParam("page")
 	limitStr := ctx.QueryParam("limit")
 
@@ -100,7 +97,6 @@ func (c *ProductController) Get(ctx echo.Context) error {
 		categoryCode,
 		warehouseName,
 		lotNo,
-		status,
 		now,
 		page,
 		limit,
